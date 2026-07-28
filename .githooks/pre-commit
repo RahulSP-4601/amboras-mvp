@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repository_root="$(git rev-parse --show-toplevel)"
+cd "${repository_root}"
+
+echo "Pre-commit: running Guardian"
+./Guardian.sh
