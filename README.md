@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Evolv MVP
 
-## Getting Started
+Evolv is a focused, one-product storefront experiment loop inspired by Amboras:
+generate a structured store, publish it, observe validated behavior, test a controlled
+improvement, and publish a merchant-selected version.
 
-First, run the development server:
+## Local setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Use Node.js 20.9 or newer and PostgreSQL 14 or newer.
+2. Run `npm install`.
+3. Copy `.env.example` to `.env.local` and add credentials when available.
+4. Apply `supabase/migrations` to an isolated Supabase project.
+5. Run `npm run hooks:install`.
+6. Run `npm run dev`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without credentials, development exposes the visual application and deterministic
+local generation preview. Production generation, persistence, OAuth, public store,
+and events fail closed until their validated environment values exist.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Quality commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run guardian` — static and functional pre-commit gates
+- `npm run typecheck` — strict TypeScript
+- `npm run lint` — ESLint limits and safety rules
+- `npm run test:functional` — domain and component contracts
+- `./scripts/check-database-behavior.sh` — isolated migration/RLS behavior
+- `npm run build` — production Next.js build
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The current implementation boundary and manual acceptance gates live in
+`docs/phases.md`.

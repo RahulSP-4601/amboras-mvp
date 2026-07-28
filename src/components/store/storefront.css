@@ -1,0 +1,269 @@
+.storefront {
+  background: var(--store-bg);
+  color: var(--store-fg);
+  min-height: 100%;
+}
+
+.storefront-editorial h1,
+.storefront-editorial h2 {
+  font-family: Georgia, serif;
+}
+
+.sf-announcement {
+  background: var(--store-fg);
+  color: var(--store-bg);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  padding: 9px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.sf-header {
+  align-items: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--store-fg) 16%, transparent);
+  display: flex;
+  height: 76px;
+  justify-content: space-between;
+  padding: 0 5vw;
+}
+
+.sf-header strong {
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sf-header nav {
+  display: flex;
+  font-size: 11px;
+  gap: 28px;
+}
+
+.sf-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 650px;
+}
+
+.sf-hero-copy {
+  align-self: center;
+  padding: 8vw;
+}
+
+.sf-hero-copy > p,
+.sf-product-details > p,
+.sf-faq > p {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.sf-hero-copy h1 {
+  font-size: clamp(46px, 5.2vw, 78px);
+  font-weight: 400;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+  margin: 20px 0;
+}
+
+.sf-hero-copy > span {
+  display: block;
+  font-size: 15px;
+  line-height: 1.65;
+  max-width: 500px;
+}
+
+.sf-hero-copy button,
+.sf-final-cta button {
+  background: var(--store-accent);
+  border: 0;
+  color: white;
+  margin: 30px 0 14px;
+  min-height: 48px;
+  padding: 0 24px;
+}
+
+.sf-hero-copy small {
+  display: block;
+}
+
+.sf-image {
+  background: color-mix(in srgb, var(--store-accent) 15%, var(--store-surface));
+  min-height: 650px;
+}
+
+.sf-image img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.sf-product-art {
+  align-items: center;
+  background: radial-gradient(circle, #dfd1bd, #a88d70);
+  display: flex;
+  height: 100%;
+  justify-content: center;
+}
+
+.sf-product-art > span {
+  background: linear-gradient(135deg, #5a3424, #9b6545);
+  border-radius: 42% 42% 25% 25%;
+  box-shadow: 20px 30px 60px rgb(52 31 20 / 30%);
+  display: block;
+  height: 48%;
+  width: 42%;
+}
+
+.sf-product-details {
+  margin: auto;
+  max-width: 780px;
+  padding: 130px 30px;
+  text-align: center;
+}
+
+.sf-product-details h2 {
+  font-size: 50px;
+  font-weight: 400;
+  margin: 18px 0;
+}
+
+.sf-product-details > span {
+  display: block;
+  line-height: 1.8;
+}
+
+.sf-product-details strong {
+  display: block;
+  margin-top: 22px;
+}
+
+.sf-benefits {
+  border-bottom: 1px solid color-mix(in srgb, var(--store-fg) 16%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--store-fg) 16%, transparent);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.sf-benefits article {
+  border-right: 1px solid color-mix(in srgb, var(--store-fg) 16%, transparent);
+  padding: 60px 4vw;
+}
+
+.sf-benefits article:last-child {
+  border-right: 0;
+}
+
+.sf-benefits span {
+  color: var(--store-accent);
+  font-size: 11px;
+}
+
+.sf-benefits h3 {
+  font-size: 21px;
+  margin-top: 30px;
+}
+
+.sf-trust {
+  background: var(--store-fg);
+  color: var(--store-bg);
+  padding: 100px 6vw;
+  text-align: center;
+}
+
+.sf-trust > p {
+  font-family: Georgia, serif;
+  font-size: 42px;
+}
+
+.sf-trust > div {
+  display: flex;
+  font-size: 11px;
+  gap: 32px;
+  justify-content: center;
+}
+
+.sf-faq {
+  margin: auto;
+  max-width: 800px;
+  padding: 120px 30px;
+}
+
+.sf-faq details {
+  border-bottom: 1px solid color-mix(in srgb, var(--store-fg) 20%, transparent);
+  padding: 23px 0;
+}
+
+.sf-faq summary {
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.sf-faq details span {
+  display: block;
+  line-height: 1.7;
+  padding-top: 17px;
+}
+
+.sf-final-cta {
+  background: var(--store-surface);
+  padding: 100px 30px;
+  text-align: center;
+}
+
+.sf-final-cta h2 {
+  font-size: 46px;
+  font-weight: 400;
+  margin: auto;
+  max-width: 700px;
+}
+
+.sf-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 45px 5vw;
+}
+
+@media (max-width: 700px) {
+  .sf-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+    height: auto;
+    padding: 20px 24px;
+  }
+
+  .sf-header nav {
+    flex-wrap: wrap;
+    font-size: 11px;
+    gap: 16px;
+  }
+
+  .sf-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .sf-hero-copy {
+    padding: 70px 24px;
+  }
+
+  .sf-image {
+    min-height: 480px;
+  }
+
+  .sf-benefits {
+    grid-template-columns: 1fr;
+  }
+
+  .sf-benefits article {
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--store-fg) 16%, transparent);
+    border-right: 0;
+  }
+
+  .sf-trust > div {
+    flex-direction: column;
+  }
+}

@@ -9,13 +9,15 @@ if [[ -z "${staged_files}" ]]; then
   exit 0
 fi
 
-if grep -Eq '(^|/)\.env($|\.)|(^|/)(\.next|coverage|out)/' <<<"${staged_files}"; then
+if grep -Ev '(^|/)\.env\.example$' <<<"${staged_files}" |
+  grep -Eq '(^|/)\.env($|\.)|(^|/)(\.next|coverage|out)/'; then
   echo "Guardian: staged secrets or generated output detected."
   exit 1
 fi
 
 if git diff --cached --no-ext-diff --unified=0 |
-  grep -E '^\+[^+].*((OPENAI_API_KEY|SUPABASE_SERVICE_ROLE_KEY)[[:space:]]*[:=][[:space:]]*["'\'']?[A-Za-z0-9_./+-]{16}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY)' >/dev/null; then
+  grep -E '^\+[^+]' |
+  grep -E '((OPENAI_API_KEY|SUPABASE_SERVICE_ROLE_KEY)[[:space:]]*=[[:space:]]*["'\'']?[A-Za-z0-9_./+-]{16}|(OPENAI_API_KEY|SUPABASE_SERVICE_ROLE_KEY)[[:space:]]*:[[:space:]]*["'\''][A-Za-z0-9_./+-]{16}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY)' >/dev/null; then
   echo "Guardian: staged content resembles a secret."
   exit 1
 fi

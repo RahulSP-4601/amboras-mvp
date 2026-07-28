@@ -1,77 +1,208 @@
-import Image from "next/image";
+import {
+  ArrowRight,
+  BarChart3,
+  Check,
+  FlaskConical,
+  Sparkles,
+} from "lucide-react";
+import Link from "next/link";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <StarterMessage />
-        <StarterActions />
-      </main>
+    <main className="marketing-page">
+      <MarketingNav />
+      <Hero />
+      <ProofStrip />
+      <ProductStory />
+      <ExperimentStory />
+      <MarketingFooter />
+    </main>
+  );
+}
+
+function MarketingNav() {
+  return (
+    <header className="marketing-nav">
+      <Link className="brand" href="/" aria-label="Evolv home">
+        <span className="brand-mark">
+          <Sparkles size={17} />
+        </span>
+        Evolv
+      </Link>
+      <nav aria-label="Primary navigation">
+        <a href="#how-it-works">How it works</a>
+        <a href="#experiments">Experiments</a>
+        <a href="#product">Product</a>
+      </nav>
+      <Link className="button button-secondary" href="/login">
+        Get started
+      </Link>
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="hero-shell">
+      <div className="hero-copy">
+        <p className="eyebrow">
+          <Sparkles size={15} /> AI-native storefront experiments
+        </p>
+        <h1>Build a store that improves itself.</h1>
+        <p className="hero-lede">
+          Describe your product, publish a storefront, test improvements, and
+          learn which version performs better.
+        </p>
+        <div className="hero-actions">
+          <Link className="button button-primary" href="/login">
+            Create your store <ArrowRight size={18} />
+          </Link>
+          <a className="text-link" href="#how-it-works">
+            See how it works
+          </a>
+        </div>
+        <p className="hero-note">
+          One product. One focused experiment loop. No payment required.
+        </p>
+      </div>
+      <StoreMockup />
+    </section>
+  );
+}
+
+function StoreMockup() {
+  return (
+    <div className="store-mockup" aria-label="Generated storefront preview">
+      <div className="mockup-bar">
+        <span />
+        <b>FIELDNOTE</b>
+        <span>Bag</span>
+      </div>
+      <div className="mockup-product">
+        <div className="mockup-copy">
+          <small>BUILT FOR THE LONG WAY HOME</small>
+          <h2>The everyday bag, considered.</h2>
+          <button type="button">Explore the field bag</button>
+        </div>
+        <div className="product-art" aria-hidden="true">
+          <div className="bag-handle" />
+          <div className="bag-body">
+            <div className="bag-pocket" />
+          </div>
+        </div>
+      </div>
+      <div className="mockup-benefits">
+        <span>Weather ready</span>
+        <span>Built for daily use</span>
+        <span>Quietly durable</span>
+      </div>
     </div>
   );
 }
 
-function StarterMessage() {
+function ProofStrip() {
   return (
-    <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-      <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-        To get started, edit the page.tsx file.
-      </h1>
-      <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-        Looking for a starting point or more instructions? Head over to{" "}
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="font-medium text-zinc-950 dark:text-zinc-50"
-        >
-          Templates
-        </a>{" "}
-        or the{" "}
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="font-medium text-zinc-950 dark:text-zinc-50"
-        >
-          Learning
-        </a>{" "}
-        center.
-      </p>
-    </div>
+    <section className="proof-strip" id="how-it-works">
+      {[
+        ["01", "Describe", "Tell the system what you want to sell."],
+        ["02", "Publish", "Review a structured, editable storefront."],
+        ["03", "Experiment", "Test one controlled improvement at a time."],
+        ["04", "Learn", "Measure behaviour and publish your selection."],
+      ].map(([number, title, body]) => (
+        <article key={number}>
+          <span>{number}</span>
+          <h3>{title}</h3>
+          <p>{body}</p>
+        </article>
+      ))}
+    </section>
   );
 }
 
-function StarterActions() {
+function ProductStory() {
   return (
-    <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-      <a
-        className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-        href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <Image
-          className="dark:invert"
-          src="/vercel.svg"
-          alt="Vercel logomark"
-          width={16}
-          height={16}
+    <section className="story-section" id="product">
+      <div>
+        <p className="eyebrow">A controlled system, not generated code</p>
+        <h2>Your product becomes a storefront you can trust.</h2>
+      </div>
+      <div className="story-grid">
+        <Feature icon={<Sparkles />} title="Structured generation">
+          AI creates validated content and visual direction. The application
+          owns every component.
+        </Feature>
+        <Feature icon={<Check />} title="Safe versioning">
+          Drafts, published versions, and rollback remain separate and
+          immutable.
+        </Feature>
+        <Feature icon={<BarChart3 />} title="Behavioural evidence">
+          Analytics come from validated events—not invented AI numbers.
+        </Feature>
+      </div>
+    </section>
+  );
+}
+
+function Feature(props: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <article className="feature-card">
+      <span>{props.icon}</span>
+      <h3>{props.title}</h3>
+      <p>{props.children}</p>
+    </article>
+  );
+}
+
+function ExperimentStory() {
+  return (
+    <section className="experiment-story" id="experiments">
+      <div className="experiment-copy">
+        <p className="eyebrow">
+          <FlaskConical size={15} /> Controlled A/B experiments
+        </p>
+        <h2>A storefront that learns, one clear hypothesis at a time.</h2>
+        <p>
+          Freeze the published version, preview one safe change, split visitors
+          consistently, and use deterministic analytics to identify the current
+          leader.
+        </p>
+        <Link className="button button-light" href="/login">
+          Start with your product <ArrowRight size={18} />
+        </Link>
+      </div>
+      <div className="variant-comparison">
+        <Variant label="A · Control" headline="Designed for the everyday." />
+        <Variant
+          label="B · Variant"
+          headline="Built to outlast every commute."
+          active
         />
-        Deploy Now
-      </a>
-      <a
-        className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-        href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Documentation
-      </a>
-    </div>
+      </div>
+    </section>
+  );
+}
+
+function Variant(props: { label: string; headline: string; active?: boolean }) {
+  return (
+    <article className={props.active ? "variant-card active" : "variant-card"}>
+      <small>{props.label}</small>
+      <div className="variant-art" />
+      <h3>{props.headline}</h3>
+      <span>Explore the product</span>
+    </article>
+  );
+}
+
+function MarketingFooter() {
+  return (
+    <footer className="marketing-footer">
+      <span className="brand">Evolv</span>
+      <p>Storefront experimentation, built with evidence.</p>
+      <span>© 2026 Evolv</span>
+    </footer>
   );
 }

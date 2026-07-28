@@ -1,6 +1,6 @@
 # Amboras-Inspired MVP — Phased Delivery Plan
 
-Status: **Phase 0 in progress**
+Status: **Phases 0–5 ready for credentialed manual verification**
 
 Last updated: **2026-07-28**
 
@@ -365,19 +365,19 @@ The MVP is complete when this loop works end to end:
 
 ## 9. Phase status
 
-| Phase | Deliverable                                                      | Status      | Manual approval |
-| ----: | ---------------------------------------------------------------- | ----------- | --------------- |
-|     0 | Specification, architecture, and quality foundation              | **Current** | Pending         |
-|     1 | Visual foundation, landing page, auth, and app shell             | Not started | Required        |
-|     2 | Database, ownership, and versioning foundation                   | Not started | Required        |
-|     3 | Product onboarding and AI store generation                       | Not started | Required        |
-|     4 | Store renderer, editing, preview, publish, and rollback          | Not started | Required        |
-|     5 | Public storefront, visitor identity, events, and demo conversion | Not started | Required        |
-|     6 | AI audit and experiment lifecycle                                | Not started | Required        |
-|     7 | Synthetic demo traffic                                           | Not started | Required        |
-|     8 | Analytics, AI explanation, and variant publication               | Not started | Required        |
-|     9 | Persistent AI assistant and AI Activity                          | Not started | Required        |
-|    10 | Hardening, full journey, and deployment readiness                | Not started | Required        |
+| Phase | Deliverable                                                      | Status                | Manual approval |
+| ----: | ---------------------------------------------------------------- | --------------------- | --------------- |
+|     0 | Specification, architecture, and quality foundation              | Ready for manual test | Pending         |
+|     1 | Visual foundation, landing page, auth, and app shell             | Ready for manual test | Required        |
+|     2 | Database, ownership, and versioning foundation                   | Ready for manual test | Required        |
+|     3 | Product onboarding and AI store generation                       | Ready for manual test | Required        |
+|     4 | Store renderer, editing, preview, publish, and rollback          | Ready for manual test | Required        |
+|     5 | Public storefront, visitor identity, events, and demo conversion | Ready for manual test | Required        |
+|     6 | AI audit and experiment lifecycle                                | Not started           | Required        |
+|     7 | Synthetic demo traffic                                           | Not started           | Required        |
+|     8 | Analytics, AI explanation, and variant publication               | Not started           | Required        |
+|     9 | Persistent AI assistant and AI Activity                          | Not started           | Required        |
+|    10 | Hardening, full journey, and deployment readiness                | Not started           | Required        |
 
 Allowed status values: `Not started`, `Current`, `In progress`, `Blocked`,
 `Ready for manual test`, `Approved`, and `Complete`.
@@ -877,4 +877,15 @@ Append one record below whenever a phase is submitted for approval.
 - Recorded that the written Next.js/Supabase/no-payment architecture overrides
   superseded Express, Cloudinary, purchase, and revenue details in the conceptual
   system-design image.
-- No product feature code was changed.
+- Implemented the Phase 0–5 application boundary. Credentialed Supabase, Google,
+  OpenAI, and browser verification remain mandatory before approval.
+- Hardened the Phase 0–5 boundary after review: immutable published-version RLS,
+  transactional generation/draft/rollback functions, replayable AI jobs, safe OAuth
+  return paths, pre-hydration store identity, store-specific sessions, layered event
+  limits, service-only sensitive RPCs, version-history rollback controls, explicit
+  AI proposal apply/discard, and Playwright execution in CI.
+- Added the second integrity pass: one store per owner, one active AI job per type,
+  real generation-stage polling, stale-version conflicts, separate draft/published
+  preview, account-safe local drafts, upload cleanup, atomic event sessions,
+  context-bound event replay, duplicate conversion locks, rate-limit retention,
+  confirmed logout handling, and executable PostgreSQL Guardian behavior tests.

@@ -1,35 +1,58 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import Home from "@/app/page";
+import LandingPage from "@/app/page";
+import { AppShell } from "@/components/app/app-shell";
 
 describe("application foundation", () => {
-  it("renders the starter page without a runtime failure", () => {
-    render(<Home />);
+  it("renders the product promise and primary action", () => {
+    render(<LandingPage />);
 
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "To get started, edit the page.tsx file.",
+        name: "Build a store that improves itself.",
       }),
     ).toBeVisible();
+    expect(
+      screen.getAllByRole("link", { name: /create your store/i }).length,
+    ).toBeGreaterThan(0);
   });
 
-  it("protects external links from opener access", () => {
-    render(<Home />);
+  it("does not present excluded commercial navigation", () => {
+    render(<LandingPage />);
 
-    const links = screen.getAllByRole("link");
-    const externalLinks = links.filter(
-      (link) => link.getAttribute("target") === "_blank",
+    expect(
+      screen.queryByRole("link", { name: /pricing|upgrade/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the persisted store identity in the application shell", () => {
+    render(
+      <AppShell storeName="Quiet Studio">
+        <p>Workspace content</p>
+      </AppShell>,
     );
 
-    expect(externalLinks.length).toBeGreaterThan(0);
-    expect(externalLinks).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          rel: "noopener noreferrer",
-        }),
-      ]),
+    expect(screen.getByText("Quiet Studio")).toBeVisible();
+    expect(screen.getByText("Q")).toHaveClass("store-avatar");
+  });
+
+  it("clears browser-scoped workspace data before signing out", () => {
+    sessionStorage.setItem("evolv:generation-attempt", "{}");
+    localStorage.setItem("evolv:draft", "{}");
+    render(
+      <AppShell>
+        <p>Workspace content</p>
+      </AppShell>,
     );
+
+    const button = screen.getByRole("button", { name: "Sign out" });
+    const form = button.closest("form");
+    expect(form).not.toBeNull();
+    fireEvent.submit(form!);
+
+    expect(sessionStorage.getItem("evolv:generation-attempt")).toBeNull();
+    expect(localStorage.getItem("evolv:draft")).toBeNull();
   });
 });

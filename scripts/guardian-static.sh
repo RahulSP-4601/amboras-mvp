@@ -17,4 +17,10 @@ npm run lint
 echo "Guardian static: checking formatting"
 npm run format:check
 
+echo "Guardian static: checking migrations"
+./scripts/check-migrations.sh
+
+echo "Guardian static: checking focused tests"
+./scripts/check-tests.sh
+
 echo "Guardian static: passed"
