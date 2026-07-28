@@ -4,7 +4,22 @@ Status: **Phase 0 in progress**
 
 Last updated: **2026-07-28**
 
-## 1. Working agreement
+## 1. Product purpose
+
+This project is a production-quality vertical slice of Amboras' self-improving-store
+concept. It demonstrates full-stack engineering, safe AI system design,
+event-derived analytics, controlled A/B experimentation, high-quality frontend
+implementation, and disciplined testing.
+
+The MVP proves one loop:
+
+> Generate a storefront, analyse it, create an improvement, test that improvement,
+> measure visitor behaviour, and publish the merchant-selected leading version.
+
+It is not a Shopify replacement, payment platform, generic AI website generator,
+static prototype, collection of hardcoded screens, or fake analytics dashboard.
+
+## 2. Working agreement
 
 This document is the delivery contract for the MVP. We will implement **one phase at
 a time**, manually test it, record the result here, and wait for explicit approval
@@ -20,11 +35,55 @@ before beginning the next phase.
 - Pricing, billing, subscriptions, migrations, custom domains, full commerce
   operations, and other stated non-goals remain out of scope.
 
-## 2. Visual fidelity contract
+## 3. Exact MVP scope
+
+The MVP supports one merchant account, one store, and one primary product per
+store. The merchant can sign in with Google, describe a product, optionally upload
+an image, generate a structured storefront, edit and publish it, request an AI
+audit, create and run one controlled experiment, collect real or synthetic
+behavioural events, inspect deterministic analytics, publish a selected variant,
+roll back, and request the next experiment.
+
+The MVP does not implement payments, Stripe, Razorpay, card collection, real
+checkout, orders, real purchases, revenue, AOV, retention, LTV, inventory,
+shipping, fulfilment, refunds, customer accounts, CRM, transactional or marketing
+email, platform migration, existing-site integration, custom domains,
+multi-currency, taxes, staff roles, multiple stores, multiple themes,
+drag-and-drop editing, autonomous publishing, or additional infrastructure.
+
+Database schema migrations are required. Commerce-platform migrations are not.
+
+## 4. No-payment conversion model
+
+The public store uses a clearly labelled demonstration journey:
+
+```text
+Product page
+→ Click primary CTA
+→ Open demo confirmation
+→ Confirm demo conversion
+→ Record conversion_completed
+```
+
+It must never request payment or unnecessary personal information, process money,
+create an order, or claim a real purchase occurred. The UI must state:
+
+> Demo conversion — no payment will be processed.
+
+`conversion_completed` is the authoritative final funnel event. The MVP optimises
+conversion rate only.
+
+## 5. Visual and system-design reference contract
 
 The supplied screenshots in `docs/references/landing/` and
-`docs/references/dashboard/`, together with the live reference at
-`https://www.amboras.com`, are the visual source of truth.
+`docs/references/dashboard/` are the frozen visual source of truth. The saved
+system-design board at
+`docs/references/system_design/ChatGPT Image Jul 27, 2026 at 11_03_44 PM.png` is a
+required reference for the MVP journey, main screens, information relationships,
+and A/B testing flow.
+
+The live site at `https://www.amboras.com` may be studied for interaction
+understanding, but later live-site changes must not silently change scope.
 
 “1:1” means matching the reference's observable design system and layout as closely
 as practical:
@@ -40,6 +99,16 @@ It does **not** mean copying Amboras branding, logo, copy, proprietary artwork,
 exact icons, pricing, upgrade controls, or features outside this MVP. The MVP will
 use an original temporary identity and product-specific generated content.
 
+The saved system-design image is a conceptual reference, not an authority for
+technology or superseded commerce scope. Where it shows Express, Render,
+Cloudinary, purchases, revenue, orders, or checkout, this written plan wins:
+
+- one Next.js App Router application and no separate Express backend;
+- Vercel deployment;
+- Supabase Auth, PostgreSQL, and Storage;
+- no payment, order, purchase, or revenue implementation;
+- `conversion_completed` as the demonstration outcome.
+
 Every UI phase requires comparison at these viewports unless a screen is not
 applicable:
 
@@ -53,7 +122,231 @@ Visual approval is based on side-by-side inspection. Material differences in
 layout, spacing, type, colour, sizing, or behaviour must be fixed or explicitly
 recorded before approval.
 
-## 3. MVP completion path
+## 6. Required architecture
+
+Use React, Next.js App Router, strict TypeScript, Tailwind CSS, Supabase Auth,
+Supabase PostgreSQL, Supabase Storage, OpenAI, Zod, Vitest, React Testing Library,
+Playwright, ESLint, Prettier, and Vercel in one application.
+
+```text
+Browser
+  → Next.js: marketing, merchant app, public SSR store, handlers/actions
+    → Supabase: Google auth, PostgreSQL, product image storage
+    → OpenAI: generation, audit, proposals, experiments, explanations
+```
+
+Public routes are `/`, `/login`, `/auth/callback`, and `/s/[slug]`. Authenticated
+routes are `/app`, `/app/onboarding`, `/app/store`, `/app/product`,
+`/app/experiments`, `/app/experiments/[experimentId]`, `/app/analytics`, and
+`/app/activity`. `/app/dev/simulator` is authenticated, owner-scoped,
+environment-gated, and disabled in production by default.
+
+The sidebar contains only Home, Store, Product, Experiments, Analytics, and AI
+Activity. It must not show orders, customers, payments, emails, integrations,
+pricing, upgrade, migration, shipping, or fulfilment.
+
+## 7. Domain and algorithm contracts
+
+### 7.1 Product, StoreConfig, and immutable versions
+
+`products` owns the confirmed product name, price, image, and base description.
+`StoreConfig` references the product ID and owns presentation: brand and hero copy,
+CTA and offer copy, benefits, trust, FAQ, colour, typography, section visibility,
+and section order. Conflicting authoritative prices are forbidden.
+
+Every StoreVersion is immutable and has `draft`, `published`, or `archived` status.
+Manual or AI edits create a new draft. Publishing changes the store's current
+published reference, preserves history, and records AI Activity. Rollback also
+preserves history.
+
+Each experiment freezes `base_store_version_id`. Version A is that exact
+StoreConfig; Version B is an allow-listed patch against it. An experiment is never
+silently rebased. Only one experiment may run per store. Publishing unrelated
+changes while one runs requires explicit stop-and-publish confirmation.
+
+Allowed experiment states and transitions:
+
+```text
+draft → ready → running → stopped
+                    └──→ completed
+stopped → running
+draft | ready | stopped → cancelled
+```
+
+### 7.2 Store-generation and AI-job algorithm
+
+```text
+Validate input
+→ create idempotent AI job
+→ prepare versioned prompt
+→ request structured OpenAI output
+→ validate with versioned Zod schema
+→ reject unknown/unsupported fields
+→ create canonical Product
+→ create draft StoreVersion
+→ record AI Activity
+→ return draft preview
+```
+
+The `ai_jobs` record includes store/user, job type, status, real current stage,
+idempotency key, attempts, model/prompt/schema versions, input summary, error code,
+and timestamps. Status is queued, running, succeeded, failed, or cancelled.
+Refreshing must not duplicate work. Progress displays real stages, never fabricated
+percentages.
+
+OpenAI cannot return React, JSX, JavaScript, CSS, HTML, SQL, or executable code.
+Reviews, ratings, guarantees, certifications, and performance claims remain
+disabled unless authentic merchant data supports them.
+
+### 7.3 Cold-start audit algorithm
+
+Before traffic, deterministic code evaluates headline clarity, value proposition,
+CTA specificity, benefits, trust signals, offer clarity, price justification,
+section order, and mobile density. OpenAI receives only Product, StoreConfig,
+structured findings, and allowed targets, then returns one validated hypothesis
+labelled **Cold-start hypothesis**. It must never imply visitor evidence exists.
+
+### 7.4 Experiment-generation algorithm
+
+`ExperimentProposal` contains name, hypothesis, reason, target section and metric,
+frozen base version ID, changed fields, variant patch, expected learning, and risk.
+Allowed targets are hero headline/supporting copy/image, CTA, offer, benefit order,
+trust message, and selected section visibility/order. The model returns a patch,
+not a replacement store. The merchant previews A and B before starting.
+
+### 7.5 Stable visitor-assignment algorithm
+
+Use a random anonymous visitor ID in a secure first-party cookie. For a running
+experiment, first read the unique `(visitor_id, experiment_id)` assignment. If
+missing, calculate:
+
+```text
+HMAC_SHA256(
+  EXPERIMENT_ASSIGNMENT_SECRET,
+  experiment_id + ":" + visitor_id
+) → bucket 0..9999
+
+0..4999 → A
+5000..9999 → B
+```
+
+Insert under a unique constraint; on a race, read the existing assignment.
+Assignment and variant rendering occur server-side before the response. Refresh
+never reassigns, and client `Math.random()` is never authoritative.
+
+### 7.6 Session and event-ingestion algorithm
+
+A new session begins after 30 minutes of inactivity. Identity is random,
+first-party, non-fingerprinted, and does not rely on persistent IP data.
+
+Allowed events:
+
+```text
+page_view
+product_view
+scroll_50
+cta_click
+checkout_started
+conversion_completed
+```
+
+The event request is minimal. The server derives store, visitor, session, active
+experiment, saved variant, and synthetic status. It validates event ID and type,
+rejects cross-store or forged attribution, bounds metadata, applies PostgreSQL-
+backed rate limiting, and guarantees idempotency. The client never declares
+ownership, experiment, variant, synthetic status, or conversion value.
+
+`checkout_started` names the demonstration funnel stage only; it does not represent
+a real checkout or payment operation.
+
+### 7.7 Synthetic traffic algorithm
+
+Inputs are seed, session count, persona mix, and traffic quality. Personas are
+price-sensitive, quality-focused, trust-sensitive, and impatient mobile. The
+simulator extracts offer strength, quality messaging, trust strength, CTA clarity,
+content length, and mobile density from each variant.
+
+```text
+Create synthetic visitor
+→ assign through the real assignment service
+→ select persona with seeded randomness
+→ score persona/variant compatibility
+→ derive stage probabilities
+→ submit the journey through the real event service
+```
+
+The same seed/configuration reproduces results; different inputs may differ.
+Version B is never guaranteed to win. The simulator never writes aggregates.
+Synthetic records and screens are always labelled and separable from live traffic.
+
+### 7.8 Analytics and result-state algorithm
+
+Authoritative metrics come from application code or database queries, never AI.
+Unique exposure is the first valid `page_view` per assigned visitor in an
+experiment. Product-view, CTA, checkout-start, and conversion rates are unique
+visitors reaching that stage divided by unique exposed visitors. Funnel drop-off
+is `1 - next_stage / current_stage`.
+
+Live is the default filter. Synthetic and Combined are explicit alternatives;
+synthetic views always show **Synthetic demo traffic**. Never calculate or display
+real revenue, order value, AOV, retention, LTV, or profit.
+
+Result states are:
+
+```text
+Insufficient data
+Current leader
+Merchant-confirmed selection
+```
+
+The configurable demonstration threshold defaults to at least 100 unique exposures
+per variant and 10 total `conversion_completed` events. It is a guardrail, not
+statistical significance. A merchant may select either variant after acknowledging
+the warning.
+
+### 7.9 Variant-publication algorithm
+
+```text
+Validate ownership and experiment state
+→ validate selected variant
+→ materialize selected StoreConfig
+→ create new published StoreVersion
+→ archive previous published reference
+→ complete experiment
+→ store observed metric snapshot
+→ record merchant-confirmed selection and AI Activity
+→ update public store reference
+```
+
+This is transactional, preserves history and the public URL, and always requires
+explicit merchant confirmation.
+
+### 7.10 AI explanation and assistant boundaries
+
+OpenAI receives validated aggregate counts, rates, threshold status, changed fields,
+hypothesis, and current leader—not raw tables. It may explain observations,
+limitations, and one next experiment. It cannot invent metrics, claim certainty,
+modify records, or publish.
+
+The persistent assistant supports only `get_store_context`,
+`propose_store_changes`, `create_experiment`, and
+`explain_experiment_results`. Publishing and rollback remain explicit UI actions.
+Every tool is schema-validated, authenticated, owner-scoped, and auditable.
+
+### 7.11 Data, environment, and safeguards
+
+Required tables are profiles, stores, products, store_versions, ai_jobs,
+experiments, experiment_variants, visitors, visitor_assignments, sessions, events,
+experiment_metric_snapshots, ai_actions, and rate_limits. Use RLS, server ownership
+checks, foreign keys, status/unique constraints, analytics indexes, and
+transactional publication. Anonymous users never receive broad database access.
+
+All AI requests require authentication, ownership, length/output limits,
+idempotency, timeout, bounded retries, one active same-type job, version and usage
+logging, safe error logging, and configurable request limits. Pre-commit never
+makes paid calls. Production rate limits are PostgreSQL-backed, not in-memory.
+
+## 8. MVP completion path
 
 The MVP is complete when this loop works end to end:
 
@@ -67,23 +360,24 @@ The MVP is complete when this loop works end to end:
 8. Clearly labelled synthetic demo traffic can exercise the same event pipeline.
 9. Deterministic analytics identify the current leader.
 10. AI explains the validated aggregates without inventing metrics or certainty.
-11. The merchant publishes the winner and the system proposes the next experiment.
+11. The merchant confirms and publishes a selected variant, then the system proposes
+    the next experiment.
 
-## 4. Phase status
+## 9. Phase status
 
-| Phase | Deliverable                                                    | Status      | Manual approval |
-| ----: | -------------------------------------------------------------- | ----------- | --------------- |
-|     0 | Specification, architecture, and quality foundation            | **Current** | Pending         |
-|     1 | Visual foundation, landing page, auth, and app shell           | Not started | Required        |
-|     2 | Database, ownership, and versioning foundation                 | Not started | Required        |
-|     3 | Product onboarding and AI store generation                     | Not started | Required        |
-|     4 | Store renderer, editing, preview, publish, and rollback        | Not started | Required        |
-|     5 | Public storefront, visitor identity, events, and demo checkout | Not started | Required        |
-|     6 | AI audit and experiment lifecycle                              | Not started | Required        |
-|     7 | Synthetic demo traffic                                         | Not started | Required        |
-|     8 | Analytics, AI explanation, and winner publication              | Not started | Required        |
-|     9 | Persistent AI assistant and AI Activity                        | Not started | Required        |
-|    10 | Hardening, full journey, and deployment readiness              | Not started | Required        |
+| Phase | Deliverable                                                      | Status      | Manual approval |
+| ----: | ---------------------------------------------------------------- | ----------- | --------------- |
+|     0 | Specification, architecture, and quality foundation              | **Current** | Pending         |
+|     1 | Visual foundation, landing page, auth, and app shell             | Not started | Required        |
+|     2 | Database, ownership, and versioning foundation                   | Not started | Required        |
+|     3 | Product onboarding and AI store generation                       | Not started | Required        |
+|     4 | Store renderer, editing, preview, publish, and rollback          | Not started | Required        |
+|     5 | Public storefront, visitor identity, events, and demo conversion | Not started | Required        |
+|     6 | AI audit and experiment lifecycle                                | Not started | Required        |
+|     7 | Synthetic demo traffic                                           | Not started | Required        |
+|     8 | Analytics, AI explanation, and variant publication               | Not started | Required        |
+|     9 | Persistent AI assistant and AI Activity                          | Not started | Required        |
+|    10 | Hardening, full journey, and deployment readiness                | Not started | Required        |
 
 Allowed status values: `Not started`, `Current`, `In progress`, `Blocked`,
 `Ready for manual test`, `Approved`, and `Complete`.
@@ -125,7 +419,7 @@ product code is written.
 - [ ] All required documents exist and agree on scope and terminology.
 - [ ] Every later phase has dependencies, acceptance criteria, tests, security
       notes, and a definition of done.
-- [ ] Guardian succeeds on a clean checkout.
+- [ ] Guardian succeeds from a clean repository state.
 - [ ] A deliberate lint/type/test violation makes Guardian fail clearly.
 - [ ] Pre-commit hook installation is documented and verified.
 - [ ] No auth, database, AI, storefront, or other product feature was implemented.
@@ -292,7 +586,7 @@ approval; Guardian passes.
 
 ---
 
-## Phase 5 — Public storefront, visitor identity, events, and demo checkout
+## Phase 5 — Public storefront, visitor identity, events, and demo conversion
 
 ### Goal
 
@@ -303,8 +597,8 @@ Publish a real public storefront and collect trustworthy behavioural events.
 - Render `/s/[slug]` server-side from the current published version.
 - Create anonymous visitor and session identity with secure first-party cookies.
 - Add validated, idempotent, rate-limited, server-controlled event ingestion.
-- Support the fixed event allow-list from page view through purchase.
-- Implement the simulated add-to-cart and checkout-success journey.
+- Support the fixed event allow-list from page view through `conversion_completed`.
+- Implement the clearly labelled no-payment demo conversion journey.
 - Attach store, visitor, session, experiment, variant, synthetic flag, and optional
   value on the server where applicable.
 
@@ -312,7 +606,7 @@ Publish a real public storefront and collect trustworthy behavioural events.
 
 - Event validation, idempotency, rate limiting, and cross-store rejection tests.
 - Visitor/session persistence and public-store tests.
-- Simulated checkout journey test.
+- Demo conversion journey test.
 
 ### Manual verification
 
@@ -320,6 +614,8 @@ Publish a real public storefront and collect trustworthy behavioural events.
 - [ ] Draft content never leaks to the public page.
 - [ ] Refresh preserves visitor identity and creates correct session behaviour.
 - [ ] Events occur once at the intended interaction points.
+- [ ] Demo conversion states that no payment is processed.
+- [ ] No personal or payment data is requested.
 - [ ] Unknown, duplicate, forged-store, and excessive events are rejected.
 - [ ] Public storefront is responsive, accessible, and free of layout shifts.
 
@@ -407,42 +703,44 @@ separate from live traffic; Guardian passes.
 
 ---
 
-## Phase 8 — Analytics, AI explanation, and winner publication
+## Phase 8 — Analytics, AI explanation, and variant publication
 
 ### Goal
 
-Convert event data into deterministic results and safely publish the current winner.
+Convert event data into deterministic results and safely publish a
+merchant-confirmed variant.
 
 ### Scope
 
-- Calculate sessions, funnel counts, drop-off, conversion, revenue, and revenue per
-  visitor from events.
+- Calculate unique exposures, funnel counts, drop-off, and conversion rate from
+  events.
 - Compare variants and filter synthetic versus live data.
 - Make application logic—not OpenAI—the numeric source of truth and current leader.
 - Give AI only validated aggregates for explanation, limitations, and next-test ideas.
-- Publish a selected winner transactionally, preserve versions and observed metrics,
-  complete the experiment, and keep the same public URL.
+- Publish a merchant-selected variant transactionally, preserve versions and
+  observed metrics, complete the experiment, and keep the same public URL.
 
 ### Automated checks
 
-- Funnel, conversion, revenue, filter, and aggregation tests.
+- Exposure, funnel, conversion, filter, and aggregation tests.
 - Small-sample/insufficient-evidence explanation guard tests.
-- Atomic winner-publication and public-version update tests.
+- Atomic variant-publication and public-version update tests.
 
 ### Manual verification
 
 - [ ] Analytics match a hand-calculated seeded dataset.
+- [ ] No revenue, order, AOV, retention, LTV, or profit metric appears.
 - [ ] Live-only, synthetic-only, and combined filters are correct.
 - [ ] Empty, running, insufficient-sample, and completed states are clear.
 - [ ] AI numbers exactly match validated aggregates and include limitations.
-- [ ] Winner publication requires confirmation and changes the public store.
+- [ ] Variant publication requires confirmation and changes the public store.
 - [ ] The prior version remains available for rollback.
 - [ ] Analytics and result screens pass visual comparison.
 
 ### Exit gate
 
-Metrics are reproducible, explanations are bounded, and a confirmed winner can be
-published safely; Guardian passes.
+Metrics are reproducible, explanations are bounded, and a merchant-confirmed
+variant can be published safely; Guardian passes.
 
 ---
 
@@ -458,7 +756,8 @@ history.
 - Activate the persistent composer across authenticated pages.
 - Supply page-specific suggestions for Store, Experiments, and Analytics.
 - Implement validated application tools for context, proposals, experiments,
-  explanations, winner publication, and rollback.
+  explanations and experiment creation; publication and rollback stay explicit UI
+  actions.
 - Require explicit confirmation for publishing and rollback.
 - Record user, AI, and system activities with status, summary, entity, timestamp,
   metadata, and actor.
@@ -499,7 +798,18 @@ a founder demonstration.
 - Full Playwright journey with mocked AI and approved test-auth strategy.
 - Separate opt-in smoke tests for real Supabase, OAuth, and OpenAI boundaries.
 - Vercel configuration, deployment documentation, and demo seed workflow.
-- Final visual pass against every supplied reference screen.
+- Final visual pass against every supplied landing/dashboard reference and the
+  saved system-design journey.
+
+Required end-to-end journey:
+
+```text
+Landing → Google login → onboarding → generate → preview → publish
+→ public store → cold-start audit → create and preview A/B experiment
+→ start → synthetic traffic → analytics → AI explanation
+→ merchant selects variant → publish → confirm public update
+→ rollback → confirm restoration → request next experiment
+```
 
 ### Automated checks
 
@@ -516,6 +826,7 @@ a founder demonstration.
       gating are verified.
 - [ ] Public storefront has no assignment flash or major layout shift.
 - [ ] Synthetic results are never presented as real customer results.
+- [ ] No payment, order, purchase, or revenue logic exists.
 - [ ] Rollback and recovery paths are demonstrated.
 
 ### Exit gate
@@ -523,7 +834,7 @@ a founder demonstration.
 All checks pass, no critical known security or data-integrity risk remains, visual
 review is approved, and the deployed MVP completes the promised loop.
 
-## 5. Phase completion record template
+## 10. Phase completion record template
 
 Append one record below whenever a phase is submitted for approval.
 
@@ -547,7 +858,7 @@ Append one record below whenever a phase is submitted for approval.
 - Approval:
 ```
 
-## 6. Change log
+## 11. Change log
 
 ### 2026-07-28
 
@@ -556,4 +867,14 @@ Append one record below whenever a phase is submitted for approval.
   landing/dashboard screenshots, and live Amboras reference.
 - Marked Phase 0 as current.
 - Began Phase 0 by adding the two-part Guardian quality gate and pre-commit hook.
+- Replaced payment, purchase, order, and revenue-adjacent scope with the explicitly
+  labelled `conversion_completed` demonstration funnel.
+- Added Product/StoreConfig ownership, immutable version and experiment-base rules,
+  HMAC visitor assignment, event attribution, seeded simulator, deterministic
+  analytics, result states, and transactional variant-publication algorithms.
+- Made `docs/references/landing/`, `docs/references/dashboard/`, and
+  `docs/references/system_design/` required implementation references.
+- Recorded that the written Next.js/Supabase/no-payment architecture overrides
+  superseded Express, Cloudinary, purchase, and revenue details in the conceptual
+  system-design image.
 - No product feature code was changed.
